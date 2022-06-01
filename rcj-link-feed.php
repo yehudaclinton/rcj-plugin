@@ -22,8 +22,6 @@ class RcjLinkFeedPlugin extends Plugin
         $form = $event['form'];
         $action = $event['action'];
         $params = $event['params'];
-        
-//$this->grav['log']->info('debug '.$action.' f '.$form["name"]);
 
 
         switch ($form["name"]) {
@@ -32,25 +30,33 @@ class RcjLinkFeedPlugin extends Plugin
             $headline = $form->data['title'];
             $link = $form->data['link'];
             $cat = $form->data['category'];
-//$this->grav['log']->info('huda test0 '.$headline);
-$content = file_get_contents("user/pages/01.home/default.md");
-
+ 
+         if($cat!="default") $cat+="/default";
+         $content = file_get_contents("user/pages/01.home/".$cat.".md");
 
 if($action=="save"){
-$domain = parse_url($link);
-$domain = explode('.', $domain['host']);
+  //extract domain name from url
+  $domain = parse_url($link);
+  $domain = explode('.', $domain['host']);
+  //exceptions
+  if($domain[1]=="com"||$domain[1]=="org") array_shift($domain);
+  if($domain[1]=="substack") $domain[1]=$domain[0];
 
-$tag = "<i class='fa fa-tags' aria-hidden='true'></i><span class='tags'><a href='/rcj/rcj-posts/tag:".$cat."' class='p-category'>".$domain[1]."</a></span>";
+  $tag = "<span class='tags'><a href='/rcj/rcj-posts/tag:".$cat."' class='p-category'>".$domain[1]."</a></span>";
 
-$newcontnent = str_replace("===", "===  \n  \n**[".($headline)."](".$link.")** ".$tag."  \n  \n", $content);
+  //find where to place the headline by skipping to the third '---'
+  $pos = strpos($content, "---", strpos($content, "---",3)+strlen("---"));
+  $newcontnent = substr_replace($content,"---  \n  \n**[".($headline)."](".$link.")** ".$tag."  \n  \n",$pos,3);
 
-  $rewrite = file_put_contents("user/pages/01.home/default.md", $newcontnent);
-  $this->grav['log']->info('add link attempt:'.$rewrite);
+  //rewrite the whole page including new headline
+  $rewrite = file_put_contents("user/pages/01.home/".$cat.".md", $newcontnent);
+
+  //$this->grav['log']->info('add link attempt:'.$rewrite);
 }
 //TODO
-//get article category in a proper place
+//sanatize inputs?
+//sort out the tag vs source
 //see if there is 10 articles in list. if so remove bottom one
-//append link to top of article list
 
           break;
         case "form2":
