@@ -31,16 +31,15 @@ class RcjLinkFeedPlugin extends Plugin
             $link = $form->data['link'];
             $cat = $form->data['category'];
  
-         if($cat!="default") $cat+="/default";
+         if($cat!="default") $cat.="/default";
          $content = file_get_contents("user/pages/01.home/".$cat.".md");
 
 if($action=="save"){
   //extract domain name from url
   $domain = parse_url($link);
   $domain = explode('.', $domain['host']);
-  //exceptions
-  if($domain[1]=="com"||$domain[1]=="org") array_shift($domain);
-  if($domain[1]=="substack") $domain[1]=$domain[0];
+  //exceptions that are solved by using first url part instead of second
+  if($domain[1]=="com"||$domain[1]=="org"||$domain[1]=="substack") $domain[1]=$domain[0];
 
   $tag = "<span class='tags'><a href='/rcj/rcj-posts/tag:".$cat."' class='p-category'>".$domain[1]."</a></span>";
 
